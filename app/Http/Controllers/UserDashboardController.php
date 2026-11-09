@@ -27,7 +27,7 @@ class UserDashboardController extends Controller
             ->latest()
             ->get();
 
-        return view('User.dashboard', [
+        return view('user.dashboard', [
             'user' => $user,
             'reports' => $reports,
             'filter' => $filter,
