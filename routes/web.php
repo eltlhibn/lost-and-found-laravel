@@ -6,6 +6,10 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\AdminController;
 
+Route::get('/', function () {
+    return redirect()->route('user.dashboard');
+});
+
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -42,9 +46,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/reports/{id}/resolve', [ReportController::class, 'markResolved'])
         ->name('reports.resolve');
 
-    Route::post('/reports/{id}/delete', [ReportController::class, 'deleteFromDashboard'])
-        ->name('reports.delete');
-
     Route::get('/reports/{id}/answer', [AnswerController::class, 'showForm'])
         ->name('verification.answer');
 
@@ -54,18 +55,21 @@ Route::middleware('auth')->group(function () {
     Route::post('/answers/update-status', [AnswerController::class, 'updateStatus'])
         ->name('answers.updateStatus');
 
-    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])
-        ->name('admin.dashboard');
+    // Admin Routes
+    Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard', [AdminController::class, 'dashboard'])
+            ->name('dashboard');
 
-    Route::get('/admin/reports', [AdminController::class, 'manageReports'])
-        ->name('admin.manageReports');
+        Route::get('/reports', [AdminController::class, 'manageReports'])
+            ->name('manageReports');
 
-    Route::delete('/admin/reports/{id}', [AdminController::class, 'deleteReport'])
-        ->name('admin.reports.delete');
+        Route::delete('/reports/{id}', [AdminController::class, 'deleteReport'])
+            ->name('reports.delete');
 
-    Route::get('/admin/users', [AdminController::class, 'manageUsers'])
-        ->name('admin.users');
+        Route::get('/users', [AdminController::class, 'manageUsers'])
+            ->name('users');
 
-    Route::get('/admin/user-action/{id}', [AdminController::class, 'userAction'])
-        ->name('admin.user.action');
+        Route::post('/user-action/{id}', [AdminController::class, 'userAction'])
+            ->name('user.action');
+    });
 });

@@ -13,10 +13,6 @@ class AdminController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role !== 'admin') {
-            abort(403);
-        }
-
         return view('admin.dashboard', [
             'username' => $user->username,
         ]);
@@ -24,10 +20,6 @@ class AdminController extends Controller
 
     public function manageReports()
     {
-        if (Auth::user()->role !== 'admin') {
-            abort(403);
-        }
-
         $reports = Report::with('user')
             ->orderByDesc('id')
             ->get();
@@ -37,10 +29,6 @@ class AdminController extends Controller
 
     public function deleteReport($id)
     {
-        if (Auth::user()->role !== 'admin') {
-            abort(403);
-        }
-
         $report = Report::findOrFail($id);
         $report->delete();
 
@@ -49,10 +37,6 @@ class AdminController extends Controller
 
     public function manageUsers()
     {
-        if (Auth::user()->role !== 'admin') {
-            abort(403);
-        }
-
         $users = User::orderBy('id')->get();
 
         return view('admin.manage_users', compact('users'));
@@ -60,11 +44,11 @@ class AdminController extends Controller
 
     public function userAction(Request $request, $id)
     {
-        if (Auth::user()->role !== 'admin') {
-            abort(403);
-        }
+        $request->validate([
+            'action' => 'required|in:block,unblock,delete',
+        ]);
 
-        if ($id == Auth::id()) {
+        if ((int) $id === (int) Auth::id()) {
             return back()->with('error', 'You cannot perform this action on yourself.');
         }
 
@@ -84,7 +68,6 @@ class AdminController extends Controller
             case 'delete':
                 $user->reports()->delete();
                 $user->delete();
-
                 return back()->with('success', 'User deleted successfully.');
 
             default:

@@ -156,27 +156,6 @@ class ReportController extends Controller
 
         $report->update(['status' => 'resolved']);
 
-        // ✅ no popup
-        return back();
-    }
-
-    // =========================
-    // DELETE FROM DASHBOARD (NO MESSAGE)
-    // =========================
-    public function deleteFromDashboard($id)
-    {
-        $user = Auth::user();
-
-        $query = Report::where('id', $id);
-
-        if ($user->role !== 'admin') {
-            $query->where('user_id', $user->id);
-        }
-
-        $report = $query->firstOrFail();
-        $report->delete();
-
-        // ✅ stay on same dashboard card
-        return back();
+        return back()->with('success', 'Report marked as resolved.');
     }
 }

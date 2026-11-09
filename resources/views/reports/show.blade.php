@@ -1,143 +1,123 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>View Report</title>
-  <style>
-    body { font-family: Arial, sans-serif; background:#f3f7f6; margin:0; padding:0; }
-    .navbar {
-      background-color: #1a3b7a;
-      color: white;
-      padding: 15px 30px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .navbar h1 { font-size: 20px; margin: 0; }
-    .navbar a {
-      color: white;
-      margin-left: 20px;
-      text-decoration: none;
-      font-weight: 500;
-    }
-    .container {
-      max-width: 900px;
-      margin: 30px auto;
-      background:#fff;
-      padding:30px;
-      border-radius:12px;
-      box-shadow:0 4px 15px rgba(0,0,0,0.1);
-    }
-    .info-label { font-weight:bold; width:140px; display:inline-block; }
-    .answer-item { padding:15px; border:1px solid #ddd; border-radius:8px; margin-bottom:15px; background:#fafafa; }
-    .status-correct { color:green; font-weight:bold; }
-    .status-rejected { color:red; font-weight:bold; }
-    .status-pending { color:orange; font-weight:bold; }
-    textarea { width:100%; min-height:100px; padding:10px; border-radius:8px; }
-    .submit-btn { background:#1a3b7a; color:white; padding:8px 14px; border:none; border-radius:6px; }
-    .btn { padding:6px 12px; border-radius:6px; border:none; cursor:pointer; }
-    .btn-accept { background:green; color:white; }
-    .btn-reject { background:red; color:white; }
-    .success { color:green; font-weight:bold; margin-bottom:15px; }
-  </style>
-</head>
-<body>
+@extends('layouts.app')
 
+@section('title', $report->item_name . ' - Details')
+
+@push('styles')
+<style>
+  .info-label { font-weight: bold; width: 140px; display: inline-block; color: #555; }
+  .answer-item {
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    background: #fafafa;
+  }
+  .status-correct { color: green; font-weight: bold; }
+  .status-rejected { color: red; font-weight: bold; }
+  .status-pending { color: orange; font-weight: bold; }
+  .btn-accept { background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+  .btn-reject { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+</style>
+@endpush
+
+@section('content')
 <div class="navbar">
-  <h1>Lost & Found</h1>
-  <div>
+  <div class="nav-left">
+    <a href="{{ route('reports.my') }}">← Back to My Reports</a>
     <a href="{{ route('user.dashboard') }}">Dashboard</a>
-    <a href="{{ route('reports.my') }}">My Reports</a>
-    <a href="{{ route('logout') }}"
-       onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-       Logout
-    </a>
   </div>
 </div>
 
-<form id="logout-form" method="POST" action="{{ route('logout') }}">
-  @csrf
-</form>
+<div class="container" style="max-width: 800px;">
+  <div class="card">
+    <h2 style="color: #1a3b7a; margin-top: 0;">{{ $report->item_name }}</h2>
 
-<div class="container">
-  <h2>{{ $report->item_name }}</h2>
-
-  @if(session('success'))
-    <p class="success">{{ session('success') }}</p>
-  @endif
-
-  <p><span class="info-label">Type:</span> {{ ucfirst($report->report_type) }}</p>
-  <p><span class="info-label">Description:</span> {{ $report->description }}</p>
-  <p><span class="info-label">Location:</span> {{ $report->location }}</p>
-  <p><span class="info-label">Date:</span> {{ $report->date_lost_found }}</p>
-
-  @php
-    $acceptedAnswer = $report->answers->firstWhere('status', 'correct');
-    $userAnswer = $report->answers->firstWhere('user_id', auth()->id());
-  @endphp
-
-  <p>
-    <span class="info-label">Contact:</span>
-    @if(
-      auth()->id() === $report->user_id ||
-      ($acceptedAnswer && auth()->id() === $acceptedAnswer->user_id)
-    )
-      {{ $report->contact_info }}
-    @else
-      (hidden until verified)
+    @if($report->photo)
+      <div style="text-align: center; margin-bottom: 20px;">
+        <img src="{{ asset('storage/' . $report->photo) }}" style="max-width: 300px; border-radius: 8px;" alt="{{ $report->item_name }}">
+      </div>
     @endif
-  </p>
 
-  <hr>
+    <p><span class="info-label">Type:</span> <strong>{{ strtoupper($report->report_type) }}</strong></p>
+    <p><span class="info-label">Description:</span> {{ $report->description }}</p>
+    <p><span class="info-label">Location:</span> {{ $report->location }}</p>
+    <p><span class="info-label">Date:</span> {{ $report->date_lost_found ? $report->date_lost_found->format('M d, Y') : 'N/A' }}</p>
 
-  <h3>Verification Answers</h3>
+    @php
+      $acceptedAnswer = $report->answers->firstWhere('status', 'correct');
+      $userAnswer = $report->answers->firstWhere('user_id', auth()->id());
+    @endphp
 
-  @forelse($report->answers as $answer)
-    <div class="answer-item">
-      <strong>{{ $answer->user->username }}</strong><br>
-      {{ $answer->answer }}<br>
-      <small>{{ $answer->created_at }}</small><br>
-
-      @if($answer->status === 'correct')
-        <span class="status-correct">Correct</span>
-      @elseif($answer->status === 'rejected')
-        <span class="status-rejected">Rejected</span>
+    <p>
+      <span class="info-label">Contact:</span>
+      @if(
+        auth()->id() === $report->user_id ||
+        ($acceptedAnswer && auth()->id() === $acceptedAnswer->user_id)
+      )
+        <strong>{{ $report->contact_info }}</strong>
       @else
-        <span class="status-pending">Pending</span>
+        <em>(Hidden until verified by owner)</em>
       @endif
+    </p>
 
-      @if(auth()->id() === $report->user_id && $answer->status === 'pending')
-        <form method="POST" action="{{ route('answers.updateStatus') }}" style="margin-top:10px;">
-          @csrf
-          <input type="hidden" name="answer_id" value="{{ $answer->id }}">
-          <button name="action" value="correct" class="btn btn-accept">Accept</button>
-          <button name="action" value="reject" class="btn btn-reject">Reject</button>
-        </form>
-      @endif
-    </div>
-  @empty
-    <p>No answers submitted yet.</p>
-  @endforelse
+    @if($report->verification_question)
+      <p><span class="info-label">Verification Question:</span> <em>"{{ $report->verification_question }}"</em></p>
+    @endif
 
-  @if(
+    <hr style="margin: 25px 0; border: 0; border-top: 1px solid #eee;">
+
+    <h3 style="color: #1a3b7a;">Verification Answers</h3>
+
+    @forelse($report->answers as $answer)
+      <div class="answer-item">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <strong>{{ $answer->user ? $answer->user->username : 'Deleted User' }}</strong>
+          <small style="color: #777;">{{ $answer->created_at ? $answer->created_at->diffForHumans() : '' }}</small>
+        </div>
+        <p style="margin: 5px 0 10px 0;">{{ $answer->answer }}</p>
+
+        <div>
+          Status:
+          @if($answer->status === 'correct')
+            <span class="status-correct">Correct (Verified)</span>
+          @elseif($answer->status === 'rejected')
+            <span class="status-rejected">Rejected</span>
+          @else
+            <span class="status-pending">Pending Review</span>
+          @endif
+        </div>
+
+        @if(auth()->id() === $report->user_id && $answer->status === 'pending')
+          <form method="POST" action="{{ route('answers.updateStatus') }}" style="margin-top: 10px;">
+            @csrf
+            <input type="hidden" name="answer_id" value="{{ $answer->id }}">
+            <button type="submit" name="action" value="correct" class="btn-accept">Accept as Correct</button>
+            <button type="submit" name="action" value="reject" class="btn-reject">Reject</button>
+          </form>
+        @endif
+      </div>
+    @empty
+      <p style="color: #777;">No answers submitted yet.</p>
+    @endforelse
+
+    @if(
       auth()->id() !== $report->user_id &&
       $report->report_type === 'found' &&
       !$userAnswer && 
       !$acceptedAnswer
-  )
-    <hr>
-    <h3>Submit Your Answer</h3>
+    )
+      <hr style="margin: 25px 0; border: 0; border-top: 1px solid #eee;">
+      <h3 style="color: #1a3b7a;">Submit Your Answer</h3>
 
-    <form method="POST" action="{{ route('answers.submit') }}">
-      @csrf
-      <input type="hidden" name="report_id" value="{{ $report->id }}">
-      <textarea name="answer" required placeholder="Type your answer here..."></textarea>
-      <br><br>
-      <button class="submit-btn">Submit Answer</button>
-    </form>
-  @endif
-
+      <form method="POST" action="{{ route('answers.submit') }}">
+        @csrf
+        <input type="hidden" name="report_id" value="{{ $report->id }}">
+        <div class="form-group">
+          <textarea name="answer" class="form-control" rows="3" required placeholder="Type your answer to prove ownership..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Answer</button>
+      </form>
+    @endif
+  </div>
 </div>
-
-</body>
-</html>
+@endsection

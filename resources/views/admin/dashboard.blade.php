@@ -1,66 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Admin Dashboard - Lost & Found</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background-color: #f3f7f6;
-    }
-    .navbar {
-      background-color: #1a3b7a;
-      color: white;
-      padding: 15px 30px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .navbar h1 { font-size: 20px; margin: 0; }
-    .navbar a { color: white; text-decoration: none; font-weight: 500; }
-    .container { padding: 40px; max-width: 1000px; margin: auto; }
-    .card {
-      background: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
-    }
-    .btn {
-      display: inline-block;
-      padding: 12px 20px;
-      background-color: #1a3b7a;
-      color: white;
-      text-decoration: none;
-      border-radius: 6px;
-      margin-right: 10px;
-    }
-  </style>
-</head>
-<body>
+@extends('layouts.app')
 
+@section('title', 'Admin Dashboard - Lost & Found')
+
+@section('content')
 <div class="navbar">
-  <h1>Lost & Found - Admin</h1>
-  <a href="{{ route('logout') }}"
-     onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-     Logout
-  </a>
-</div>
-
-<form id="logout-form" method="POST" action="{{ route('logout') }}">
-  @csrf
-</form>
-
-<div class="container">
-  <div class="card">
-    <h2>Welcome, Admin {{ Auth::user()->username }} 👋</h2>
-    <p>Here you can manage reports and users.</p>
-
-
-    <a href="/admin/reports" class="btn">📋 Manage Reports</a>
-    <a href="/admin/users" class="btn">👤 Manage Users</a>
+  <div class="nav-left">
+    <a href="{{ route('admin.dashboard') }}" style="background: #0f2349;">Dashboard</a>
+    <a href="{{ route('admin.manageReports') }}">Manage Reports</a>
+    <a href="{{ route('admin.users') }}">Manage Users</a>
   </div>
 </div>
 
-</body>
-</html>
+<div class="container">
+  <div class="card" style="text-align: center; padding: 40px;">
+    <h2 style="color: #1a3b7a; margin-bottom: 10px;">Welcome, Admin {{ Auth::user()->username }} 👋</h2>
+    <p style="color: #666; margin-bottom: 30px;">Choose an administrative section below to manage the system.</p>
+
+    <div style="display: flex; justify-content: center; gap: 20px;">
+      <a href="{{ route('admin.manageReports') }}" class="btn btn-primary" style="padding: 12px 24px; font-size: 15px;">
+        📋 Manage Reports
+      </a>
+      <a href="{{ route('admin.users') }}" class="btn btn-primary" style="padding: 12px 24px; font-size: 15px;">
+        👤 Manage Users
+      </a>
+    </div>
+  </div>
+</div>
+@endsection
